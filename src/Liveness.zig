@@ -483,31 +483,7 @@ pub fn categorizeOperand(
         },
 
         .call, .call_always_tail, .call_never_tail, .call_never_inline => {
-            const inst_data = air_datas[@intFromEnum(inst)].pl_op;
-            const callee = inst_data.operand;
-            const extra = air.extraData(Air.Call, inst_data.payload);
-            const args = @as([]const Air.Inst.Ref, @ptrCast(air.extra[extra.end..][0..extra.data.args_len]));
-            if (args.len + 1 <= bpi - 1) {
-                if (callee == operand_ref) return matchOperandSmallIndex(l, inst, 0, .write);
-                for (args, 0..) |arg, i| {
-                    if (arg == operand_ref) return matchOperandSmallIndex(l, inst, @as(OperandInt, @intCast(i + 1)), .write);
-                }
-                return .write;
-            }
-            var bt = l.iterateBigTomb(inst);
-            if (bt.feed()) {
-                if (callee == operand_ref) return .tomb;
-            } else {
-                if (callee == operand_ref) return .write;
-            }
-            for (args) |arg| {
-                if (bt.feed()) {
-                    if (arg == operand_ref) return .tomb;
-                } else {
-                    if (arg == operand_ref) return .write;
-                }
-            }
-            return .write;
+            return .none;
         },
         .select => {
             const pl_op = air_datas[@intFromEnum(inst)].pl_op;
